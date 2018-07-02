@@ -1,0 +1,125 @@
+<html>
+    <head>
+        <title>Activity</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+    </head>
+    <body>
+
+        <div id="daily_play_counts" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        <script>
+
+            daily_plays_data = [{% for item in plays_daily %}[Date.UTC({{item["date"].year}}, {{item["date"].month - 1}}, {{item["date"].day}}), {{item["play_count"]}}],{% endfor %}]
+            daily_server_data = [{% for item in plays_daily %}[Date.UTC({{item["date"].year}}, {{item["date"].month - 1}}, {{item["date"].day}}), {{item["server_count"]}}],{% endfor %}]
+
+            Highcharts.chart('daily_play_counts', {
+              chart: {
+                zoomType: 'x'
+              },
+              title: {
+                text: 'Counts Per Day'
+              },
+              subtitle: {
+                text: document.ontouchstart === undefined ?
+                  'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+              },
+              xAxis: {
+                type: 'datetime'
+              },
+              yAxis: {
+                title: {
+                  text: 'Usage Count'
+                },
+                floor: 0
+              },
+              legend: {
+                enabled: true
+              },
+              plotOptions: {
+                area: {
+                  marker: {
+                    radius: 2
+                  },
+                  lineWidth: 1,
+                  states: {
+                    hover: {
+                      lineWidth: 1
+                    }
+                  },
+                  threshold: null
+                }
+              },
+
+              series: [{
+                type: 'area',
+                name: 'Play Count',
+                //data: [[Date.UTC(2018, 1, 1), 0.7695],[Date.UTC(2018, 1, 2),0.7648],[Date.UTC(2018, 1, 3),0.7645]]
+                data: daily_plays_data,
+                fillColor: {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1
+                    },
+                    stops: [
+                      [0, Highcharts.getOptions().colors[2]],
+                      [1, Highcharts.Color(Highcharts.getOptions().colors[2]).setOpacity(0).get('rgba')]
+                    ]
+                  },
+                color: Highcharts.getOptions().colors[2]
+              },
+              {
+                type: 'area',
+                name: 'Server Count',
+                data: daily_server_data,
+                fillColor: {
+                    linearGradient: {
+                      x1: 0,
+                      y1: 0,
+                      x2: 0,
+                      y2: 1
+                    },
+                    stops: [
+                      [0, Highcharts.getOptions().colors[0]],
+                      [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                  },
+                color: Highcharts.getOptions().colors[0]
+              }]
+            });
+        </script>
+
+
+        <p/>
+
+        Weekly Results
+        <table class="table" style="width: 50%">
+
+        <thead>
+            <tr>
+                <th scope="col" style="width: 50%; white-space: nowrap;">Date</th>
+                <th scope="col" style="white-space: nowrap;">Servers</th>
+                <th scope="col" style="white-space: nowrap;">PlayActions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for key, value in weekly_data|dictsort %}
+            <tr>
+                <td style="white-space: nowrap;">{{ key }}</td>
+                <td style="white-space: nowrap;">{{ value["server"] }}</td>
+                <td style="white-space: nowrap;">{{ value["play"] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+        </table>
+
+
+    </body>
+</html>

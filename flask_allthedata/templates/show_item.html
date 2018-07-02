@@ -1,0 +1,85 @@
+<html>
+    <head>
+
+    <style>
+        body {
+            font-family: Verdana,sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+    </style>
+
+    <script>
+
+        function myToggleFull(id) {
+            var truncated = document.getElementById("variable_truncated_" + id);
+            var full = document.getElementById("variable_full_" + id);
+            if (truncated.style.display === "none") {
+                truncated.style.display = "block";
+                full.style.display = "none";
+            } else {
+                truncated.style.display = "none";
+                full.style.display = "block";
+            }
+        }
+
+    </script>
+
+
+    </head>
+    <body>
+
+        <h2>Short Error</h2>
+
+        {{ item_data["error_short"] }}
+
+        <h2>Stack Trace</h2>
+
+        <pre>{% for frame in item_data["error_stack"] %}{{ frame }}{% endfor %}</pre>
+
+        <h2>Machine State</h2>
+        <table>
+            {% set loop_outer = 0 %}
+            {% for frame in item_data["machine_state"] %}
+                <tr>
+                    <td colspan="2"><b>{{ frame["function"] }} {{ frame["line"] }} {{ frame["filename"] }}</b></td>
+                </tr>
+                {% set loop_inner = 0 %}
+                {% for local_name in frame["locals"] %}
+                    <tr>
+                        {% if frame["locals"][local_name]|length > 100 %}
+                            <td valign="top" style="padding-left:50px;"><span onClick="myToggleFull('{{ loop_outer }}-{{ loop_inner }}')"><strong>{{ local_name }}</strong></span></td>
+                            <td style="font-family: Courier;">
+                                <span style="display : block;" id="variable_truncated_{{ loop_outer }}-{{ loop_inner }}">{{ frame["locals"][local_name]|truncate(100, killwords=True) }}</span>
+                                <span style="display : none;" id="variable_full_{{ loop_outer }}-{{ loop_inner }}">{{ frame["locals"][local_name] }}</span>
+                            </td>
+                        {% else %}
+                            <td valign="top" style="padding-left:50px;">{{ local_name }}</td>
+                            <td style="font-family: Courier;">{{ frame["locals"][local_name] }}</td>
+                        {% endif %}
+
+                    </tr>
+                    {% set loop_inner = loop_inner + 1 %}
+                {% endfor %}
+                {% set loop_outer = loop_outer + 1 %}
+            {% endfor %}
+
+        </table>
+
+        </br></br></br>
+
+        <table>
+
+            {% for item in item_data %}
+                {% if item != "machine_state" and item != "error_stack" and item != "error_short" %}
+                    <tr>
+                        <td>{{ item }}</td>
+                        <td>{{ item_data[item] }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+
+        </table>
+
+    </body>
+</html>
